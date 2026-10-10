@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<title>Bếp Nhà Sen – Đặt chỗ</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F4F6F8;--card:#fff;--ink:#14213D;--mute:#5F6B7F;--line:#DDE2EA;--pri:#14213D;--onpri:#fff;--acc:#E8A22B;--dis:#EEF0F4;--ok:#1F8A5B;--err:#C23B3B;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E1422;--card:#172036;--ink:#EEF1F7;--mute:#9AA6BC;--line:#2A3550;--pri:#E8A22B;--onpri:#14213D;--dis:#1E2942;--ok:#4CC38A;--err:#F07A7A}}
+:root[data-theme="dark"]{--bg:#0E1422;--card:#172036;--ink:#EEF1F7;--mute:#9AA6BC;--line:#2A3550;--pri:#E8A22B;--onpri:#14213D;--dis:#1E2942;--ok:#4CC38A;--err:#F07A7A}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 "Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:560px;margin:0 auto;padding:0 16px 120px}
+.hero{background:var(--pri);color:var(--onpri);margin:0 -16px;padding:28px 20px 32px}
+.hero h1{margin:0 0 6px;font-size:28px;font-weight:800;letter-spacing:-.01em}
+.hero p{margin:0;opacity:.85;font-size:14px}
+.tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.tags span{border:1px solid currentColor;border-radius:99px;padding:2px 12px;font-size:13px;opacity:.9}
+section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-top:14px}
+h2{margin:0 0 12px;font-size:17px;font-weight:700}
+.row{display:flex;align-items:center;justify-content:space-between}
+.step{display:flex;align-items:center;gap:16px}
+.step button{width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:22px;cursor:pointer}
+.step output{font-size:22px;font-weight:800;min-width:28px;text-align:center}
+.dates{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin:0 -2px;scrollbar-width:thin}
+.chip{flex:0 0 auto;min-width:62px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:8px 6px;text-align:center;cursor:pointer;font:inherit}
+.chip small{display:block;color:var(--mute);font-size:12px}
+.chip b{font-size:18px}
+.chip[aria-pressed=true]{background:var(--pri);color:var(--onpri);border-color:var(--pri)}
+.chip[aria-pressed=true] small{color:inherit;opacity:.8}
+.slots{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.slots .chip{padding:10px 0;min-width:0;font-weight:500}
+.chip:disabled{background:var(--dis);color:var(--mute);text-decoration:line-through;cursor:not-allowed;border-color:transparent}
+.sub{margin:14px 0 8px;font-size:13px;color:var(--mute);font-weight:500}
+.sub:first-of-type{margin-top:0}
+label{display:block;font-size:14px;font-weight:500;margin:12px 0 4px}
+input,textarea{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 12px}
+input:focus,textarea:focus,button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.err{color:var(--err);font-size:13px;min-height:18px;margin:4px 0 0}
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px))}
+.bar div{max-width:560px;margin:0 auto;display:flex;align-items:center;gap:12px}
+.bar p{margin:0;flex:1;font-size:13px;color:var(--mute);line-height:1.35}
+.bar p b{display:block;color:var(--ink);font-size:15px}
+.cta{border:0;background:var(--pri);color:var(--onpri);font:700 16px inherit;font-family:inherit;padding:13px 22px;border-radius:12px;cursor:pointer}
+.cta:disabled{opacity:.4;cursor:not-allowed}
+.done{text-align:center;padding:28px 18px}
+.done .tick{width:56px;height:56px;border-radius:50%;background:var(--ok);color:#fff;font-size:30px;line-height:56px;margin:0 auto 12px}
+.code{display:inline-block;margin:10px 0;padding:6px 16px;border:2px dashed var(--line);border-radius:10px;font-weight:800;font-size:22px;letter-spacing:.12em}
+dl{text-align:left;display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:14px 0;font-size:15px}
+dt{color:var(--mute)}dd{margin:0;font-weight:500}
+.ghost{background:none;border:1px solid var(--line);color:var(--ink);font:500 15px inherit;font-family:inherit;padding:11px 18px;border-radius:12px;cursor:pointer}
+.tbls{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:12px}.tbls .chip{text-align:left;padding:10px 12px}.tbls .chip b{font-size:16px}
+.sbtn{position:fixed;top:calc(8px + env(safe-area-inset-top,0px));right:12px;z-index:30;border:0;border-radius:99px;padding:8px 14px;background:var(--acc);color:#14213D;font:700 13px inherit;font-family:inherit;cursor:pointer}
+#staffHost{position:fixed;inset:0;z-index:50;display:none}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<button class="sbtn" id="staffBtn" hidden type="button">Nhân viên</button>
+<div id="staffHost"></div>
+<main>
+  <header class="hero">
+    <h1>Bếp Nhà Sen</h1>
+    <p>Món Việt gia đình · 24 Hàng Bài, Hoàn Kiếm, Hà Nội</p>
+    <div class="tags"><span>Mở 10:30 – 21:30</span><span>Giữ bàn 15 phút</span></div>
+  </header>
+
+  <div id="form">
+    <section>
+      <div class="row"><h2 style="margin:0">Số người</h2>
+        <div class="step"><button type="button" id="minus" aria-label="Giảm số người">−</button><output id="size">2</output><button type="button" id="plus" aria-label="Tăng số người">+</button></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Chọn ngày</h2>
+      <div class="dates" id="dates"></div>
+    </section>
+
+    <section>
+      <h2>Chọn giờ</h2>
+      <p class="sub">Bữa trưa</p><div class="slots" id="lunch"></div>
+      <p class="sub">Bữa tối</p><div class="slots" id="dinner"></div>
+    </section>
+
+    <section>
+      <h2>Chọn bàn</h2>
+      <div class="dates" id="areas"></div>
+      <div class="tbls" id="tbls"></div>
+      <p class="sub" id="tinfo"></p>
+    </section>
+
+    <section>
+      <h2>Thông tin liên hệ</h2>
+      <label for="name">Họ tên</label><input id="name" autocomplete="name">
+      <label for="phone">Số điện thoại</label><input id="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="09xx xxx xxx">
+      <label for="note">Ghi chú (không bắt buộc)</label><textarea id="note" rows="2" placeholder="Ghế trẻ em, dị ứng, dịp sinh nhật…"></textarea>
+      <p class="err" id="err" role="alert"></p>
+    </section>
+  </div>
+
+  <section class="done" id="done" hidden>
+    <div class="tick">✓</div>
+    <h2 style="font-size:22px">Đã đặt chỗ thành công</h2>
+    <div class="code" id="code"></div>
+    <dl id="sum"></dl>
+    <p style="color:var(--mute);font-size:14px">Xác nhận sẽ được gửi qua tin nhắn tới số điện thoại của bạn. Vui lòng đến trước giờ hẹn; bàn được giữ trong 15 phút.</p>
+    <button class="ghost" id="again" type="button">Đặt chỗ khác</button>
+  </section>
+</main>
+
+<div class="bar" id="bar"><div>
+  <p id="hint">Chọn ngày và giờ</p>
+  <button class="cta" id="go" type="button" disabled>Đặt chỗ</button>
+</div></div>
+
+<script>
+var STAFF_CSS="\n:host{--bg:#E9ECF3;--card:#fff;--ink:#1B2236;--mute:#6B7487;--line:#D5DAE5;--side:#1B2140;--acc:#F26B3A;--ok:#2E9E6B;--late:#D8453F;--arr:#3B72D9;--row:#F4F6FA;display:block;height:100%;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);background:var(--bg);color:var(--ink);font:400 14px/1.4 system-ui,-apple-system,\"Segoe UI\",Roboto,sans-serif}\n@media (prefers-color-scheme:dark){:host{--bg:#0D1120;--card:#1A2138;--ink:#EDF0F8;--mute:#9BA5BD;--line:#2B3452;--side:#0A0D1A;--row:#141A2E}}\n*{box-sizing:border-box}\n#app{display:flex;height:100%}\naside{width:72px;background:var(--side);color:#fff;display:flex;flex-direction:column;align-items:center;padding:14px 0;gap:18px;flex:none}\n.logo{font-weight:800;color:var(--acc);font-size:13px;text-align:center;line-height:1.1}\n.nav{text-align:center;font-size:11px;opacity:.95}.nav i{display:block;font-style:normal;font-size:22px}\n.main{flex:1;min-width:0;display:flex;flex-direction:column}\nheader{display:flex;align-items:center;gap:14px;padding:10px 16px;background:var(--card);border-bottom:1px solid var(--line);flex-wrap:wrap}\n.open{color:var(--ok);font-weight:700}\n.dn{display:flex;align-items:center;gap:8px;margin:0 auto}\n.dn b{min-width:170px;text-align:center}\nbutton{font:inherit;color:inherit;cursor:pointer}\n.btn{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:6px 12px}\n.pri{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:700}\n.scroll{flex:1;overflow:auto}\n.hrow,.row{display:flex;width:max-content;min-width:100%}\n.lab{width:120px;flex:none;position:sticky;left:0;z-index:3;background:var(--card);border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:8px 10px}\n.lab small{display:block;color:var(--mute);font-size:12px}\n.hrow{position:sticky;top:0;z-index:4}\n.hrow .lab{z-index:5}\n.hc{width:140px;flex:none;padding:8px 10px;background:var(--card);border-bottom:1px solid var(--line);border-left:1px solid var(--line);font-weight:600}\n.hc small{color:var(--mute);margin-left:6px;font-weight:400}\n.rows{position:relative}\n.line{position:relative;width:980px;height:72px;flex:none;border-bottom:1px solid var(--line);cursor:cell;\nbackground:repeating-linear-gradient(90deg,transparent 0 139px,var(--line) 139px 140px)}\n.row:nth-child(even) .line{background-color:var(--row)}\n.row:nth-child(even) .line{background-image:repeating-linear-gradient(90deg,transparent 0 139px,var(--line) 139px 140px)}\n.bk{position:absolute;top:4px;height:64px;width:206px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:4px 8px;cursor:pointer;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.15);z-index:2}\n.bk .tag{display:inline-block;color:#fff;background:var(--ok);border-radius:4px;padding:0 6px;font-size:11px;margin-right:6px}\n.bk .tag.arr{background:var(--arr)}\n.bk .late{position:absolute;top:4px;right:8px;background:var(--late);color:#fff;border-radius:4px;padding:0 6px;font-size:11px}\n.bk .sz{position:absolute;right:10px;bottom:6px;font-size:22px;font-weight:300}\n.bk b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px}\n.bk small{display:block;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px}\n.now{position:absolute;top:0;bottom:0;width:2px;background:var(--acc);z-index:6;pointer-events:none}\n.now span{position:absolute;top:0;left:-18px;background:var(--acc);color:#fff;font-size:11px;padding:0 5px;border-radius:3px}\n.md{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:20;padding:16px}\n.box{background:var(--card);border-radius:14px;padding:18px;width:100%;max-width:400px;max-height:100%;overflow:auto}\n.box h3{margin:0 0 8px}\nlabel{display:block;margin:10px 0 3px;font-weight:600;font-size:13px}\ninput,select,textarea{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px}\n.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}\n.act{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}\n.err{color:var(--late);min-height:18px;margin:6px 0 0}\ndl{display:grid;grid-template-columns:auto 1fr;gap:4px 14px}dt{color:var(--mute)}dd{margin:0}\n.demo{background:#FFF3CD;color:#5a4500;padding:6px 16px;font-size:13px}\n[hidden]{display:none!important}\n@media(max-width:600px){aside{display:none}.dn b{min-width:130px}}\n",STAFF_HTML="\n<div id=\"app\">\n <aside><div class=\"logo\">B\u1ebfp<br>Nh\u00e0 Sen<\/div><div class=\"nav\"><i>\u25a6<\/i>B\u1ea3ng b\u00e0n<\/div><\/aside>\n <div class=\"main\">\n  <div class=\"demo\" id=\"demo\" hidden>Ch\u1ebf \u0111\u1ed9 xem th\u1eed: d\u1eef li\u1ec7u ch\u01b0a \u0111\u01b0\u1ee3c l\u01b0u. M\u1edf trang qua t\u00e0i kho\u1ea3n qu\u1ea3n l\u00fd \u0111\u1ec3 l\u01b0u th\u1eadt.<\/div>\n  <header>\n   <button class=\"btn\" id=\"back\">\u2190 Trang kh\u00e1ch<\/button><span class=\"open\">\u25cf \u0110ang m\u1edf c\u1eeda<\/span>\n   <div class=\"dn\"><button class=\"btn\" id=\"prev\" aria-label=\"Ng\u00e0y tr\u01b0\u1edbc\">\u2039<\/button><b id=\"dl\"><\/b><button class=\"btn\" id=\"today\">H\u00f4m nay<\/button><button class=\"btn\" id=\"next\" aria-label=\"Ng\u00e0y sau\">\u203a<\/button><\/div>\n   <button class=\"btn pri\" id=\"add\">+ \u0110\u1eb7t ch\u1ed7<\/button>\n  <\/header>\n  <div class=\"scroll\"><div id=\"grid\"><\/div><\/div>\n <\/div>\n<\/div>\n\n<div class=\"md\" id=\"md\" hidden><div class=\"box\">\n <div id=\"vAdd\">\n  <h3>Th\u00eam \u0111\u1eb7t ch\u1ed7<\/h3>\n  <label for=\"n\">H\u1ecd t\u00ean<\/label><input id=\"n\">\n  <label for=\"p\">S\u1ed1 \u0111i\u1ec7n tho\u1ea1i<\/label><input id=\"p\" type=\"tel\" inputmode=\"tel\">\n  <div class=\"two\"><div><label for=\"s\">S\u1ed1 ng\u01b0\u1eddi<\/label><input id=\"s\" type=\"number\" min=\"1\" max=\"30\" value=\"2\"><\/div><div><label for=\"t\">Gi\u1edd<\/label><select id=\"t\"><\/select><\/div><\/div>\n  <label for=\"tb\">B\u00e0n<\/label><select id=\"tb\"><\/select>\n  <label for=\"nt\">Ghi ch\u00fa<\/label><input id=\"nt\" placeholder=\"Sinh nh\u1eadt, gh\u1ebf tr\u1ebb em\u2026\">\n  <p class=\"err\" id=\"err\" role=\"alert\"><\/p>\n  <div class=\"act\"><button class=\"btn\" id=\"c1\">H\u1ee7y<\/button><button class=\"btn pri\" id=\"sv\">L\u01b0u<\/button><\/div>\n <\/div>\n <div id=\"vInfo\" hidden>\n  <h3 id=\"iN\"><\/h3><dl id=\"iD\"><\/dl>\n  <div class=\"act\"><button class=\"btn\" id=\"c2\">\u0110\u00f3ng<\/button><button class=\"btn\" id=\"del\">X\u00f3a<\/button><button class=\"btn pri\" id=\"arr\">Kh\u00e1ch \u0111\u00e3 \u0111\u1ebfn<\/button><\/div>\n <\/div>\n<\/div><\/div>\n\n";
+
+window.__staffInit=function(root,DB0){
+var TB=[],K=1;[[2,"Trong nhà",4],[4,"Trong nhà",4],[6,"Sân vườn",2],[10,"Phòng riêng",1]].forEach(function(g){for(var i=0;i<g[2];i++){TB.push(["Bàn "+K,g[1]+" · "+g[0]+" chỗ"]);K++}});
+var H0=16,HW=140,LW=120,DOW=["Chủ nhật","Thứ Hai","Thứ Ba","Thứ Tư","Thứ Năm","Thứ Sáu","Thứ Bảy"],
+ $=function(i){return root.getElementById(i)},
+ DB=DB0,R=[],cur=iso(new Date()),sel=null;
+function iso(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function toD(s){var p=s.split("-");return new Date(+p[0],+p[1]-1,+p[2])}
+function mins(t){var p=t.split(":");return +p[0]*60+ +p[1]}
+function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
+function nowMin(){var n=new Date();return n.getHours()*60+n.getMinutes()}
+function isToday(){return cur===iso(new Date())}
+
+function render(){
+  var d=toD(cur);
+  $("dl").textContent=d.getDate()+"/"+(d.getMonth()+1)+" ("+DOW[d.getDay()]+")"+(isToday()?" · Hôm nay":"");
+  var day=R.filter(function(r){return r.date===cur}),g=$("grid");g.innerHTML="";
+  var hr=el("div","hrow");hr.appendChild(el("div","lab"));
+  for(var h=H0;h<H0+7;h++){
+    var c=0;day.forEach(function(r){var m=mins(r.time);if(m<(h+1)*60&&m+90>h*60)c+=+r.size||0});
+    var hc=el("div","hc",h+":00");hc.appendChild(el("small","👤 "+c));hr.appendChild(hc);
+  }
+  g.appendChild(hr);
+  var rows=el("div","rows");
+  TB.forEach(function(t,i){
+    var row=el("div","row"),lab=el("div","lab",t[0]);lab.appendChild(el("small","",t[1]));row.appendChild(lab);
+    var ln=el("div","line");
+    ln.onclick=function(e){if(e.target!==ln)return;var m=Math.floor(((e.offsetX/HW)*60+H0*60)/30)*30;openAdd(i,m)};
+    day.filter(function(r){return r.tables.indexOf("B"+(i+1))>=0}).forEach(function(r){
+      var b=el("div","bk"),m=mins(r.time);
+      b.style.left=((m-H0*60)/60*HW+2)+"px";
+      var tg=el("span","tag"+(r.status==="arrived"?" arr":""),r.status==="arrived"?"Đã đến":"Đặt chỗ");
+      var l1=el("div");l1.appendChild(tg);l1.appendChild(document.createTextNode(r.time));b.appendChild(l1);
+      b.appendChild(el("b","",r.name));b.appendChild(el("small","",r.phone+(r.note?" · "+r.note:"")));
+      b.appendChild(el("span","sz",r.size));
+      if(r.status!=="arrived"&&isToday()&&nowMin()>m)b.appendChild(el("span","late","Trễ"));
+      b.onclick=function(e){e.stopPropagation();openInfo(r)};
+      ln.appendChild(b);
+    });
+    row.appendChild(ln);rows.appendChild(row);
+  });
+  if(isToday()){
+    var nm=nowMin();
+    if(nm>=H0*60&&nm<(H0+7)*60){
+      var nl=el("div","now");nl.style.left=(LW+(nm-H0*60)/60*HW)+"px";
+      nl.appendChild(el("span","",String(Math.floor(nm/60)).padStart(2,"0")+":"+String(nm%60).padStart(2,"0")));rows.appendChild(nl);
+    }
+  }
+  g.appendChild(rows);
+}
+
+function openAdd(tbl,m){
+  $("vAdd").hidden=false;$("vInfo").hidden=true;$("md").hidden=false;$("err").textContent="";
+  ["n","p","nt"].forEach(function(i){$(i).value=""});$("s").value=2;
+  var t=$("t");t.innerHTML="";
+  for(var x=H0*60;x<(H0+7)*60;x+=30){var o=el("option","",Math.floor(x/60)+":"+String(x%60).padStart(2,"0"));o.value=o.textContent;t.appendChild(o)}
+  var tb=$("tb");tb.innerHTML="";
+  TB.forEach(function(v,i){var o=el("option","",v[0]+" ("+v[1].split("· ")[1]+")");o.value=i;tb.appendChild(o)});
+  tb.value=tbl==null?0:tbl;
+  if(m==null){m=Math.min(Math.max(Math.ceil(nowMin()/30)*30,H0*60),(H0+6)*60+30)}
+  t.value=Math.floor(m/60)+":"+String(m%60).padStart(2,"0");
+  $("n").focus();
+}
+function openInfo(r){
+  sel=r;$("vAdd").hidden=true;$("vInfo").hidden=false;$("md").hidden=false;
+  $("iN").textContent=r.name;var d=$("iD");d.innerHTML="";
+  [["Điện thoại",r.phone],["Giờ",r.time+" · "+toD(r.date).getDate()+"/"+(toD(r.date).getMonth()+1)],["Số người",r.size],["Bàn",r.tables.map(function(i){return i.slice(1)}).join(" + ")],["Ghi chú",r.note||"—"],["Trạng thái",r.status==="arrived"?"Đã đến":"Chờ khách"]].forEach(function(a){d.appendChild(el("dt","",a[0]));d.appendChild(el("dd","",a[1]))});
+  $("arr").hidden=r.status==="arrived";
+}
+function close(){$("md").hidden=true}
+$("c1").onclick=close;$("c2").onclick=close;
+$("md").onclick=function(e){if(e.target===$("md"))close()};
+
+$("sv").onclick=async function(){
+  var n=$("n").value.trim(),p=$("p").value.trim(),s=+$("s").value,t=$("t").value,tb=+$("tb").value,e=$("err");
+  if(n.length<2){e.textContent="Vui lòng nhập họ tên.";return}
+  if(!/^[0-9+\s.\-]{8,15}$/.test(p)){e.textContent="Số điện thoại chưa đúng.";return}
+  if(!(s>=1)){e.textContent="Số người không hợp lệ.";return}
+  if(R.some(function(r){return r.date===cur&&r.tables.indexOf("B"+(tb+1))>=0&&Math.abs(mins(r.time)-mins(t))<90})){e.textContent="Bàn này đã có khách trong khoảng 90 phút quanh giờ này.";return}
+  var rec={date:cur,time:t,tables:["B"+(tb+1)],size:s,name:n,phone:p,note:$("nt").value.trim(),status:"booked"};rec.id="s"+Date.now();
+  try{
+    if(DB){var rr=await DB.rpc("create_reservation",{p_date:rec.date,p_time:rec.time,p_tables:rec.tables,p_size:rec.size,p_name:rec.name,p_phone:rec.phone,p_note:rec.note});if(rr.error)throw rr.error;await load()}
+    else{rec.id="l"+Date.now();R.push(rec);render()}
+    close();
+  }catch(x){e.textContent="Chưa lưu được. Vui lòng thử lại."}
+};
+$("arr").onclick=async function(){
+  try{
+    if(DB){await DB.from("reservations").update({status:"arrived"}).eq("id",sel.id);await load()}
+    else{sel.status="arrived";render()}
+    close();
+  }catch(x){}
+};
+$("del").onclick=async function(){
+  if(!confirm("Xóa đặt chỗ của "+sel.name+"?"))return;
+  try{
+    if(DB){await DB.from("reservations").delete().eq("id",sel.id);await load()}
+    else{R=R.filter(function(r){return r!==sel});render()}
+    close();
+  }catch(x){}
+};
+function go(n){var d=toD(cur);d.setDate(d.getDate()+n);cur=iso(d);render()}
+$("prev").onclick=function(){go(-1)};$("next").onclick=function(){go(1)};
+$("today").onclick=function(){cur=iso(new Date());render()};
+$("add").onclick=function(){openAdd(null,null)};
+
+function demo(){
+  var d=iso(new Date());
+  R=[{id:"d1",date:d,time:"18:00",table:0,size:10,name:"Nguyễn Thị Hoa",phone:"0988 652 001",note:"Mang hộp",status:"booked"},
+     {id:"d2",date:d,time:"19:00",table:2,size:2,name:"Trần Minh Anh",phone:"0909 066 923",note:"",status:"booked"},
+     {id:"d3",date:d,time:"19:30",table:3,size:2,name:"Lê Quang Huy",phone:"0988 581 360",note:"Sinh nhật",status:"booked"},
+     {id:"d4",date:d,time:"20:30",table:5,size:2,name:"Phạm Gia Linh",phone:"0910 879 567",note:"",status:"booked"}];
+  $("demo").hidden=false;render();
+}
+render();
+setInterval(function(){if($("md").hidden)render()},60000);
+async function load(){
+  var q=await DB.from("reservations").select("*,reservation_tables(table_id)").gte("date",iso(new Date(Date.now()-864e5)));
+  if(q.error)return;
+  R=q.data.map(function(x){return{id:x.id,date:x.date,time:x.time.slice(0,5),tables:x.reservation_tables.map(function(t){return t.table_id}),size:x.size,name:x.name,phone:x.phone,note:x.note,status:x.status}});
+  render();
+}
+load();setInterval(load,15000);
+};
+
+</script>
+<script>
+(function(){
+var LUNCH=["10:30","11:00","11:30","12:00","12:30","13:00","13:30","14:00"],
+    DINNER=["17:30","18:00","18:30","19:00","19:30","20:00","20:30","21:00"],
+    DOW=["CN","T2","T3","T4","T5","T6","T7"],
+    $=function(i){return document.getElementById(i)};
+// ===== CẤU HÌNH SUPABASE: Project Settings → API =====
+var CFG={url:"https://trfskeocvxwqdftgscur.supabase.co",key:"sb_publishable_EKZLbEB4csXVAvO1O-RESA_7dAel20K"};
+var SB=window.supabase.createClient(CFG.url,CFG.key);
+var st={size:2,date:null,time:null,tables:[],area:"Tất cả"};
+
+function hash(s){var h=0;for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return h}
+// Giả lập tình trạng hết chỗ theo ngày/giờ/số người
+// Sơ đồ bàn: [số chỗ, khu vực, số lượng]
+var TB=[],K=1,BOOK=[],DB=null,UID=null;
+[[2,"Trong nhà",4],[4,"Trong nhà",4],[6,"Sân vườn",2],[10,"Phòng riêng",1]].forEach(function(g){for(var i=0;i<g[2];i++)TB.push({id:"B"+(K++),cap:g[0],area:g[1]})});
+function mins(t){var p=t.split(":");return +p[0]*60+ +p[1]}
+function busy(x,d,t){
+    return BOOK.some(function(b){return b.date===d&&b.tables.indexOf(x.id)>=0&&Math.abs(mins(b.time)-mins(t))<90});
+}
+function freeTb(d,t){return TB.filter(function(x){return !busy(x,d,t)})}
+// Tự xếp bàn: ưu tiên 1 bàn vừa nhất, nếu không thì ghép các bàn cùng khu vực
+function auto(d,t,n){
+  var f=freeTb(d,t),one=f.filter(function(x){return x.cap>=n}).sort(function(a,b){return a.cap-b.cap})[0];
+  if(one)return [one.id];
+  var groups=["Trong nhà","Sân vườn","Phòng riêng",null];
+  for(var g=0;g<groups.length;g++){
+    var l=f.filter(function(x){return !groups[g]||x.area===groups[g]}).sort(function(a,b){return b.cap-a.cap}),ids=[],sum=0;
+    for(var i=0;i<l.length&&sum<n;i++){ids.push(l[i].id);sum+=l[i].cap}
+    if(sum>=n)return ids;
+  }
+  return null;
+}
+function full(d,t){return !auto(d,t,st.size)}
+function seats(){return st.tables.reduce(function(s,i){return s+TB.filter(function(x){return x.id===i})[0].cap},0)}
+function tables(){
+  var a=$("areas"),b=$("tbls");
+  if(!st.time)st.tables=[];
+  a.innerHTML="";b.innerHTML="";
+  ["Tất cả","Trong nhà","Sân vườn","Phòng riêng"].forEach(function(n){
+    var c=document.createElement("button");c.type="button";c.className="chip";c.textContent=n;
+    c.setAttribute("aria-pressed",st.area===n);c.onclick=function(){st.area=n;draw()};a.appendChild(c);
+  });
+  if(!st.time){$("tinfo").textContent="Chọn ngày và giờ để xem bàn trống.";return}
+  var f=freeTb(st.date,st.time).filter(function(x){return st.area==="Tất cả"||x.area===st.area});
+  f.forEach(function(x){
+    var c=document.createElement("button");c.type="button";c.className="chip";
+    c.innerHTML="<b>Bàn "+x.id.slice(1)+"</b><small>"+x.cap+" chỗ · "+x.area+"</small>";
+    c.setAttribute("aria-pressed",st.tables.indexOf(x.id)>=0);
+    c.onclick=function(){var i=st.tables.indexOf(x.id);if(i>=0)st.tables.splice(i,1);else st.tables.push(x.id);draw()};
+    b.appendChild(c);
+  });
+  var n=seats();
+  $("tinfo").textContent=(f.length?"Còn "+f.length+" bàn trống. ":"Khu vực này đã hết bàn. ")+"Đã chọn "+n+"/"+st.size+" chỗ"+(n<st.size?". Chọn thêm bàn để ghép.":".");
+}
+function iso(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function fmt(s){var p=s.split("-"),d=new Date(+p[0],+p[1]-1,+p[2]);return DOW[d.getDay()]+", "+p[2]+"/"+p[1]+"/"+p[0]}
+
+function buildDates(){
+  var box=$("dates"),now=new Date();
+  for(var i=0;i<14;i++){
+    var d=new Date(now.getFullYear(),now.getMonth(),now.getDate()+i),v=iso(d),b=document.createElement("button");
+    b.type="button";b.className="chip";b.dataset.v=v;b.setAttribute("aria-pressed","false");
+    b.innerHTML="<small>"+(i===0?"Nay":DOW[d.getDay()])+"</small><b>"+d.getDate()+"</b><small>Th"+(d.getMonth()+1)+"</small>";
+    b.onclick=function(){st.date=this.dataset.v;st.time=null;loadTaken();draw()};
+    box.appendChild(b);
+  }
+}
+function slots(id,list){
+  var box=$(id);box.innerHTML="";
+  var now=new Date(),today=st.date===iso(now);
+  list.forEach(function(t){
+    var b=document.createElement("button");b.type="button";b.className="chip";b.textContent=t;
+    var past=false;
+    if(today){var p=t.split(":");past=(+p[0]*60+ +p[1])<=now.getHours()*60+now.getMinutes()+30}
+    b.disabled=!st.date||past||full(st.date,t);
+    b.setAttribute("aria-pressed",st.time===t);
+    b.onclick=function(){st.time=t;st.tables=auto(st.date,t,st.size)||[];draw()};
+    box.appendChild(b);
+  });
+}
+function draw(){
+  $("size").textContent=st.size;
+  [].forEach.call($("dates").children,function(b){b.setAttribute("aria-pressed",b.dataset.v===st.date)});
+  slots("lunch",LUNCH);slots("dinner",DINNER);
+  var ok=st.date&&st.time;tables();ok=ok&&seats()>=st.size;
+  $("go").disabled=!ok;
+  $("hint").innerHTML=ok?"<b>"+st.size+" người · "+st.time+" · Bàn "+st.tables.map(function(i){return i.slice(1)}).join("+")+"</b>"+fmt(st.date):(st.time?"Chọn đủ bàn cho "+st.size+" người":(st.date?"Chọn giờ":"Chọn ngày và giờ"));
+}
+$("minus").onclick=function(){if(st.size>1){st.size--;st.time=null;draw()}};
+$("plus").onclick=function(){if(st.size<12){st.size++;st.time=null;draw()}};
+
+$("go").onclick=async function(){
+  var n=$("name").value.trim(),p=$("phone").value.replace(/[\s.\-]/g,"");
+  var e=$("err");
+  if(n.length<2){e.textContent="Vui lòng nhập họ tên.";$("name").focus();return}
+  if(!/^(0|\+84)\d{9}$/.test(p)){e.textContent="Số điện thoại chưa đúng. Ví dụ: 0912345678.";$("phone").focus();return}
+  e.textContent="";
+  var code="NS"+(hash(n+p+st.date+st.time)%100000).toString().padStart(5,"0");
+  $("code").textContent=code;
+  var note=$("note").value.trim();
+  $("sum").innerHTML="<dt>Khách</dt><dd></dd><dt>Số người</dt><dd>"+st.size+"</dd><dt>Ngày</dt><dd>"+fmt(st.date)+"</dd><dt>Giờ</dt><dd>"+st.time+"</dd><dt>Bàn</dt><dd>"+st.tables.map(function(i){return i.slice(1)}).join(" + ")+"</dd>"+(note?"<dt>Ghi chú</dt><dd></dd>":"");
+  var dd=$("sum").querySelectorAll("dd");dd[0].textContent=n+" · "+p;if(note)dd[5].textContent=note;
+  var rec={date:st.date,time:st.time,tables:st.tables.slice()};
+  $("go").disabled=true;
+  var res=await SB.rpc("create_reservation",{p_date:st.date,p_time:st.time,p_tables:st.tables,p_size:st.size,p_name:n,p_phone:p,p_note:note});
+  if(res.error){
+    var taken=/taken|exclusion/i.test(res.error.message);
+    e.textContent=taken?"Bàn vừa có người đặt. Vui lòng chọn lại giờ hoặc bàn.":"Chưa lưu được đơn đặt chỗ. Vui lòng thử lại.";
+    if(taken){st.time=null;loadTaken()}
+    draw();return;
+  }
+  code=res.data;$("code").textContent=code;BOOK.push(rec);
+  $("form").hidden=true;$("bar").hidden=true;$("done").hidden=false;window.scrollTo(0,0);
+};
+$("again").onclick=function(){
+  st={size:2,date:null,time:null,tables:[],area:"Tất cả"};
+  ["name","phone","note"].forEach(function(i){$(i).value=""});
+  $("done").hidden=true;$("form").hidden=false;$("bar").hidden=false;draw();
+};
+buildDates();draw();
+var staffOn=false;
+$("staffBtn").onclick=async function(){
+  var h=$("staffHost");
+  if(!staffOn){
+    var s=await SB.auth.getSession();
+    if(!s.data.session){
+      var em=prompt("Email nhân viên:"),pw=em&&prompt("Mật khẩu:");if(!pw)return;
+      var l=await SB.auth.signInWithPassword({email:em,password:pw});
+      if(l.error){alert("Đăng nhập không thành công.");return}
+    }
+    staffOn=true;var root=h.attachShadow({mode:"open"});root.innerHTML="<style>"+STAFF_CSS+"</style>"+STAFF_HTML;
+    window.__staffInit(root,SB);root.getElementById("back").onclick=function(){h.style.display="none"};
+  }
+  h.style.display="block";
+};
+function loadTaken(){
+  var d=st.date;if(!d)return;
+  SB.rpc("get_taken",{d:d}).then(function(r){
+    if(r.error)return;
+    BOOK=BOOK.filter(function(b){return b.date!==d}).concat(r.data.map(function(x){return{date:d,time:x.t.slice(0,5),tables:[x.table_id]}}));
+    draw();
+  });
+}
+setInterval(loadTaken,20000);
+$("staffBtn").hidden=false;
+})();
+</script>
+</body>
+</html>
